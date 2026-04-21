@@ -1,0 +1,79 @@
+rules_version = '2';
+
+service cloud.firestore {
+  match /databases/{database}/documents {
+    // Default deny
+    match /{document=**} {
+      allow read, write: if false;
+    }
+
+    // Common helpers
+    function isSignedIn() {
+      return request.auth != null;
+    }
+    
+    function isOwner(userId) {
+      return isSignedIn() && request.auth.uid == userId;
+    }
+
+    function isDocOwner() {
+      return isSignedIn() && request.auth.uid == resource.data.userId;
+    }
+
+    function incomingData() {
+      return request.resource.data;
+    }
+
+    function isValidId(id) {
+      return id is string && id.size() <= 128 && id.matches('^[a-zA-Z0-9_\\-]+$');
+    }
+
+    // User Profile Rules
+    match /users/{userId} {
+      allow read: if isOwner(userId);
+      allow create: if isOwner(userId) 
+        && incomingData().keys().hasAll(['email'])
+        && incomingData().email is string;
+      allow update: if isOwner(userId)
+        && incomingData().diff(resource.data).affectedKeys().hasOnly(['displayName', 'currency', 'dailyLimit', 'savingStreak', 'totalBalance', 'financialHealthScore']);
+    }
+
+    // Transaction Rules
+    match /transactions/{transactionId} {
+      allow list: if isSignedIn() && resource.data.userId == request.auth.uid;
+      allow get: if isSignedIn() && resource.data.userId == request.auth.uid;
+      allow create: if isSignedIn() 
+        && incomingData().userId == request.auth.uid
+        && incomingData().amount is number
+        && incomingData().type in ['income', 'expense']
+        && incomingData().category is string
+        && incomingData().date is string;
+      allow update: if isSignedIn() 
+        && resource.data.userId == request.auth.uid
+        && incomingData().userId == request.auth.uid;
+      allow delete: if isSignedIn() && resource.data.userId == request.auth.uid;
+    }
+
+    // Goal Rules
+    match /goals/{goalId} {
+      allow list: if isSignedIn() && resource.data.userId == request.auth.uid;
+      allow get: if isSignedIn() && resource.data.userId == request.auth.uid;
+      allow create: if isSignedIn() 
+        && incomingData().userId == request.auth.uid
+        && incomingData().name is string
+        && incomingData().targetAmount is number;
+      allow update: if isSignedIn() 
+        && resource.data.userId == request.auth.uid
+        && incomingData().userId == request.auth.uid;
+      allow delete: if isSignedIn() && resource.data.userId == request.auth.uid;
+    }
+
+    // Badge Rules
+    match /badges/{badgeId} {
+      allow list: if isSignedIn() && resource.data.userId == request.auth.uid;
+      allow get: if isSignedIn() && resource.data.userId == request.auth.uid;
+      allow create: if isSignedIn() && incomingData().userId == request.auth.uid;
+      allow delete: if isSignedIn() && resource.data.userId == request.auth.uid;
+    }
+  }
+}

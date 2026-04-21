@@ -1,0 +1,77 @@
+{
+  "entities": {
+    "User": {
+      "title": "User Profile",
+      "description": "Extended user information and preferences",
+      "type": "object",
+      "properties": {
+        "displayName": { "type": "string" },
+        "email": { "type": "string", "format": "email" },
+        "currency": { "type": "string", "default": "INR" },
+        "dailyLimit": { "type": "number" },
+        "savingStreak": { "type": "integer", "default": 0 },
+        "totalBalance": { "type": "number", "default": 0 },
+        "financialHealthScore": { "type": "integer", "default": 100 }
+      },
+      "required": ["email"]
+    },
+    "Transaction": {
+      "title": "Transaction",
+      "description": "An income or expense record",
+      "type": "object",
+      "properties": {
+        "userId": { "type": "string" },
+        "amount": { "type": "number" },
+        "type": { "type": "string", "enum": ["income", "expense"] },
+        "category": { "type": "string" },
+        "date": { "type": "string", "format": "date-time" },
+        "notes": { "type": "string" }
+      },
+      "required": ["userId", "amount", "type", "category", "date"]
+    },
+    "Goal": {
+      "title": "Saving Goal",
+      "description": "A target to save for a specific item or event",
+      "type": "object",
+      "properties": {
+        "userId": { "type": "string" },
+        "name": { "type": "string" },
+        "targetAmount": { "type": "number" },
+        "currentAmount": { "type": "number", "default": 0 },
+        "deadline": { "type": "string", "format": "date" },
+        "status": { "type": "string", "enum": ["active", "completed", "cancelled"] }
+      },
+      "required": ["userId", "name", "targetAmount"]
+    },
+    "Badge": {
+      "title": "Achievement Badge",
+      "description": "Gamification badges earned by the user",
+      "type": "object",
+      "properties": {
+        "userId": { "type": "string" },
+        "badgeId": { "type": "string" },
+        "name": { "type": "string" },
+        "earnedAt": { "type": "string", "format": "date-time" }
+      },
+      "required": ["userId", "badgeId", "name"]
+    }
+  },
+  "firestore": {
+    "/users/{userId}": {
+      "schema": "User",
+      "description": "Individual user settings and metadata"
+    },
+    "/transactions/{transactionId}": {
+      "schema": "Transaction",
+      "description": "Financial records for all users (secured by userId)"
+    },
+    "/goals/{goalId}": {
+      "schema": "Goal",
+      "description": "Savings goals for all users (secured by userId)"
+    },
+    "/badges/{badgeId}": {
+      "schema": "Badge",
+      "description": "User earned achievements"
+    }
+  }
+}

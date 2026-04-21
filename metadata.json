@@ -1,0 +1,6 @@
+{
+  "name": "FinFutur: AI-Powered Personal Finance Tracker",
+  "description": "A futuristic personal finance tracker with intelligent AI insights, real-time analytics, and gamified saving goals.",
+  "requestFramePermissions": ["microphone"],
+  "majorCapabilities": []
+}
